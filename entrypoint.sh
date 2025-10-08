@@ -1,59 +1,64 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-# wait upto 30 seconds for the database to start before connecting
-/wait-for-it.sh $DB_HOST:$DB_PORT -t 30
+# Provide safe defaults for required vars
+JS_VERSION="${JS_VERSION:-8.2.0}"
+DB_TYPE="${DB_TYPE:-mysql}"
+DB_HOST="${DB_HOST:-mysql_jasperserver}"
+DB_PORT="${DB_PORT:-3306}"
+DB_NAME="${DB_NAME:-jasperserver}"
+DB_USER="${DB_USER:-root}"
+DB_PASSWORD="${DB_PASSWORD:-changeme}"
 
-# required to skip interactive prompt when creating keystore in 7.5.0+
-# see https://community.jaspersoft.com/questions/1155841/docker-install-75-failing-create-ks-interactive-prompt.
+echo "[entrypoint] JasperReports Server CE ${JS_VERSION} startup"
+echo "[entrypoint] Waiting for DB ${DB_HOST}:${DB_PORT} ..."
+
+/wait-for-it.sh "${DB_HOST}:${DB_PORT}" -t 60
+
 export BUILDOMATIC_MODE=script
 
-# check if we need to bootstrap the JasperServer
-if [ -f "/.do_deploy_jasperserver" ]; then
-    pushd /usr/src/jasperreports-server/buildomatic
-    
-    # Use provided configuration templates
-    # Note: only works for Postgres or MySQL
-    cp sample_conf/${DB_TYPE}_master.properties default_master.properties
-    
-    # tell the bootstrap script where to deploy the war file to
-    sed -i -e "s|^appServerDir.*$|appServerDir = $CATALINA_HOME|g" default_master.properties
-    
-    # set all the database settings
-    sed -i -e "s|^dbHost.*$|dbHost=$DB_HOST|g; s|^dbPort.*$|dbPort=$DB_PORT|g; s|^dbUsername.*$|dbUsername=$DB_USER|g; s|^dbPassword.*$|dbPassword=$DB_PASSWORD|g" default_master.properties
-    
-    # rename the application war so that it can be served as the default tomcat web application
-    sed -i -e "s|^# webAppNameCE.*$|webAppNameCE = ROOT|g" default_master.properties
+BOOT_FLAG="/.do_deploy_jasperserver"
+INIT_FILE="/usr/src/jasperreports-server/.initialized"
 
-    # run the minimum bootstrap script to initial the JasperServer
-    ./js-ant create-js-db || true #create database and skip it if database already exists
-    ./js-ant init-js-db-ce 
-    ./js-ant import-minimal-ce 
-    ./js-ant deploy-webapp-ce
+if [[ -f "$BOOT_FLAG" && ! -f "$INIT_FILE" ]]; then
+  echo "[entrypoint] First-time bootstrap beginning..."
+  pushd /usr/src/jasperreports-server/buildomatic >/dev/null
 
-    # bootstrap was successful, delete file so we don't bootstrap on subsequent restarts
-    rm /.do_deploy_jasperserver
-    
-    # Add WebServiceDataSource plugin
-    wget https://community.jaspersoft.com/sites/default/files/releases/jaspersoft_webserviceds_v1.5.zip -O /tmp/jasper.zip && \
-    unzip /tmp/jasper.zip -d /tmp/ && \
-    cp -rfv /tmp/JRS/WEB-INF/* /usr/local/tomcat/webapps/ROOT/WEB-INF/ && \
-    sed -i 's/queryLanguagesPro/queryLanguagesCe/g' /usr/local/tomcat/webapps/ROOT/WEB-INF/applicationContext-WebServiceDataSource.xml && \
-    rm -rf /tmp/*
+  # Pick correct master properties template
+  if [[ -f "sample_conf/${DB_TYPE}_master.properties" ]]; then
+    cp "sample_conf/${DB_TYPE}_master.properties" default_master.properties
+  elif [[ "$DB_TYPE" == "postgres" && -f sample_conf/postgresql_master.properties ]]; then
+    cp sample_conf/postgresql_master.properties default_master.properties
+  else
+    echo "[entrypoint] Unsupported DB_TYPE: ${DB_TYPE}"
+    exit 1
+  fi
 
-    # import any export zip files from another JasperServer
+  sed -i -E "s|^appServerDir.*|appServerDir = ${CATALINA_HOME:-/usr/local/tomcat}|g" default_master.properties
+  sed -i -E "s|^dbHost.*|dbHost=${DB_HOST}|; s|^dbPort.*|dbPort=${DB_PORT}|; s|^dbUsername.*|dbUsername=${DB_USER}|; s|^dbPassword.*|dbPassword=${DB_PASSWORD}|" default_master.properties
 
-    shopt -s nullglob # handle case if no zip files found
+  # Optional: deploy as ROOT
+  if grep -q 'webAppNameCE' default_master.properties; then
+    sed -i -E "s|^#?[[:space:]]*webAppNameCE.*|webAppNameCE = ROOT|g" default_master.properties
+  else
+    echo "webAppNameCE = ROOT" >> default_master.properties
+  fi
 
-    IMPORT_FILES=/jasperserver-import/*.zip
-    for f in $IMPORT_FILES
-    do
-      echo "Importing $f..."
-      ./js-import.sh --input-zip $f
-    done
+  ./js-ant create-js-db || true
+  ./js-ant init-js-db-ce
+  ./js-ant import-minimal-ce
+  ./js-ant deploy-webapp-ce
 
-    popd
+  touch "$INIT_FILE"
+  rm -f "$BOOT_FLAG"
+
+  # Optional plugin step can go here (left out for brevity)
+
+  popd >/dev/null
+  echo "[entrypoint] Bootstrap complete."
+else
+  echo "[entrypoint] Existing initialization detected or no bootstrap flag; skipping."
 fi
 
-# run Tomcat to start JasperServer webapp
-catalina.sh run
+echo "[entrypoint] Starting Tomcat..."
+exec catalina.sh run
