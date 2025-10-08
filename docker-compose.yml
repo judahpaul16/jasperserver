@@ -13,6 +13,8 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+    networks:
+      - default
     restart: unless-stopped
 
   jasperserver:
@@ -33,14 +35,10 @@ services:
       DB_NAME: jasperserver
       DB_USER: root
       DB_PASSWORD: "No$crash2025$"
-      TZ: UTC
+      TZ: America/New_York
     volumes:
       - ./jasperserver-import:/jasperserver-import
     networks:
       - default
-      - fvnetwork
     restart: unless-stopped
 
-networks:
-  fvnetwork:
-    external: true

@@ -43,7 +43,7 @@ ENV DB_TYPE=mysql \
     DB_PORT=3306 \
     DB_NAME=jasperserver \
     DB_USER=root \
-    DB_PASSWORD=changeme \
+    DB_PASSWORD="No$crash2025$" \
     JAVA_OPTS="-Xms1024m -Xmx2048m" \
     TZ=America/New_York
 
