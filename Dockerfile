@@ -45,7 +45,7 @@ ENV DB_TYPE=mysql \
     DB_USER=root \
     DB_PASSWORD=changeme \
     JAVA_OPTS="-Xms1024m -Xmx2048m" \
-    TZ=UTC
+    TZ=America/New_York
 
 EXPOSE 8080
 VOLUME ["/jasperserver-import"]

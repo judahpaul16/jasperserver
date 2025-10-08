@@ -4,12 +4,12 @@ services:
     image: mysql:5.7
     container_name: mysql_jasperserver
     environment:
-      MYSQL_ROOT_PASSWORD: No$$crash
+      MYSQL_ROOT_PASSWORD: No$$crash2025$$
       MYSQL_DATABASE: jasperserver
     volumes:
       - ./datadir:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-pNo$crash"]
+      test: ["CMD", "mysqladmin", "ping", "-pNo$crash2025$"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -32,8 +32,15 @@ services:
       DB_PORT: 3306
       DB_NAME: jasperserver
       DB_USER: root
-      DB_PASSWORD: No$$crash
+      DB_PASSWORD: No$$crash2025$$
       TZ: UTC
     volumes:
       - ./jasperserver-import:/jasperserver-import
+    networks:
+      - default
+      - fvnetwork
     restart: unless-stopped
+
+networks:
+  fvnetwork:
+    external: true
