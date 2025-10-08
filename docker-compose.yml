@@ -4,7 +4,7 @@ services:
     image: mysql:5.7
     container_name: mysql_jasperserver
     environment:
-      MYSQL_ROOT_PASSWORD: No$$crash2025$$
+      MYSQL_ROOT_PASSWORD: "No$crash2025$"
       MYSQL_DATABASE: jasperserver
     volumes:
       - ./datadir:/var/lib/mysql
@@ -32,7 +32,7 @@ services:
       DB_PORT: 3306
       DB_NAME: jasperserver
       DB_USER: root
-      DB_PASSWORD: No$$crash2025$$
+      DB_PASSWORD: "No$crash2025$"
       TZ: UTC
     volumes:
       - ./jasperserver-import:/jasperserver-import
