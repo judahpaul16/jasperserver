@@ -38,7 +38,11 @@ services:
       TZ: America/New_York
     volumes:
       - ./jasperserver-import:/jasperserver-import
+      - jasperserver-keystore:/root  # Persist keystore files (.jrsks, .jrsksp) to prevent password encryption mismatch
     networks:
       - default
     restart: unless-stopped
+
+volumes:
+  jasperserver-keystore:
 
