@@ -40,9 +40,14 @@ services:
       - ./jasperserver-import:/jasperserver-import
       - jasperserver-keystore:/root  # Persist keystore files (.jrsks, .jrsksp) to prevent password encryption mismatch
     networks:
-      - default
+      - jasperserver_default
+      - shared_network
     restart: unless-stopped
 
 volumes:
   jasperserver-keystore:
 
+networks:
+  jasperserver_default:
+  shared_network:
+    external: true
