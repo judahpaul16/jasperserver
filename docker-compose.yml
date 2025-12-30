@@ -15,7 +15,7 @@ services:
       retries: 5
     networks:
       - default
-      - bridge
+      - shared
     restart: unless-stopped
 
   jasperserver:
@@ -42,13 +42,12 @@ services:
       - jasperserver-keystore:/root  # Persist keystore files (.jrsks, .jrsksp) to prevent password encryption mismatch
     networks:
       - default
-      - bridge
+      - shared
     restart: unless-stopped
 
 volumes:
   jasperserver-keystore:
 
 networks:
-  bridge:
-    external: true
-    name: bridge
+  shared:
+    name: shared
