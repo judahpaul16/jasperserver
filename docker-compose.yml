@@ -41,6 +41,8 @@ services:
       - jasperserver-keystore:/root  # Persist keystore files (.jrsks, .jrsksp) to prevent password encryption mismatch
     networks:
       - default
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
 volumes:
