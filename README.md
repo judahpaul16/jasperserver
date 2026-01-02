@@ -8,7 +8,7 @@ The Docker Image aims to quickly get up-and-running a JasperReports Server for a
 
 To start the JasperServer container you'll need to pass in 5 environment variables and link it to either a MySQL or Postgres container.
 
-E.g. `docker run -d --name jasperserver -e DB_TYPE=mysql -e DB_HOST=db -e DB_PORT=3306 -e DB_USER=root -e DB_PASSWORD=mysql --link jasperserver_mysql:db -p 8080:8080 retriever/jasperserver`
+E.g. `docker run -d --name jasperserver -e DB_TYPE=mysql -e DB_HOST=db -e DB_PORT=3306 -e DB_USER=root -e DB_PASSWORD=mysql --link jasperserver_mysql:db -p 8080:8080 judahpaul/jasperserver`
 
 If you haven't got an existing MySQL or Postgres container then you can easily create one:
 `docker run -d --name jasperserver_mysql -e MYSQL_ROOT_PASSWORD=mysql mysql:5.7`
@@ -42,7 +42,7 @@ This image includes:
 * [Web Service Data Source plugin](https://community.jaspersoft.com/project/web-service-data-source) contributed by [@chiavegatto](https://github.com/chiavegatto)
 
 ## How to build this image
-Use `docker build -t retriever/jasperserver .`
+Use `docker build -t judahpaul/jasperserver .`
 
 See comments in Dockerfile to speed up testing by not having to download the jasperserver release each time.
 
@@ -58,9 +58,9 @@ Steps to make a new official version of the image:
 1. Push a new `git tag` using the naming convention `major.minor.iteration` where:
     * major and minor line up with the included version of jasperserver
     * iteration is incremented each time a change is done that isn't an upgrade of the included jasperserver version
-2. Build the image locally for each tag e.g. `docker build -t retriever/jasperserver:7.5.0 -t retriever/jasperserver:latest .`
+2. Build the image locally for each tag e.g. `docker build -t judahpaul/jasperserver:7.5.0 -t judahpaul/jasperserver:latest .`
 3. Login to dockerhub with account that has push privileges to retriever org (i.e. `docker login`)
-4. Push image for each tag (e.g. `docker push retriever/jasperserver:7.5.0` and `docker push retriever/jasperserver:latest`)
-5. Check images are on Docker Hub: [retriever/jaserpserver](https://hub.docker.com/r/retriever/jasperserver/)
-6. Test new Docker Hub images by deleting local image e.g. `docker rmi retriever/jasperserver:7.5.0 retriever/jasperserver:latest` and re-downloading from Dockerhub and run up container e.g. `docker-compose up`. 
+4. Push image for each tag (e.g. `docker push judahpaul/jasperserver:7.5.0` and `docker push judahpaul/jasperserver:latest`)
+5. Check images are on Docker Hub: [judahpaul/jasperserver](https://hub.docker.com/r/judahpaul/jasperserver/)
+6. Test new Docker Hub images by deleting local image e.g. `docker rmi judahpaul/jasperserver:7.5.0 judahpaul/jasperserver:latest` and re-downloading from Dockerhub and run up container e.g. `docker-compose up`. 
     * Note: ensure docker-compose.yml is pointing to right version and clear out local `datadir` to start fresh.
